@@ -38,7 +38,7 @@ A：修改simdht_worker.py里的max_node_qsize=后面的数字，越大爬取越
 
 **Q：觉得数据库空密码不安全，怎么修改数据库密码？**
 
-A：执行mysqladmin -uroot -p password 123456!@#$%^      //将提示输入当前密码，直接回车即可，123456!@#$%^是新密码
+A：执行mysqladmin -uroot  password 123456!@#$%^      //123456!@#$%^是新密码
 
 **Q：修改数据库密码后怎么修改程序里的配置？**
 
