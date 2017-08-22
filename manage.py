@@ -181,6 +181,16 @@ def make_cache_key(*args, **kwargs):
     args = str(hash(frozenset(request.args.items())))
     return (path + args).encode('utf-8')
 
+def filelist_filter(info_hash):
+    try:
+        return json.loads(Search_Filelist.query.filter_by(info_hash=info_hash).first().file_list)
+    except:
+        return [{
+       'path':Search_Hash.query.filter_by(info_hash=info_hash).first().name, 
+       'length':Search_Hash.query.filter_by(info_hash=info_hash).first().length
+       }]
+app.add_template_filter(filelist_filter,'filelist')
+
 
 def todate_filter(s):
     return datetime.datetime.fromtimestamp(int(s)).strftime('%Y-%m-%d')
