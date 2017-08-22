@@ -71,51 +71,31 @@
 </div>
 </div>
 
+
+     
 <div class="detail-panel detail-width">
 <div class="panel-header">
-伪文件列表
+文件列表
 </div>
 <div class="panel-body">
 <ol>
-<li>{{hash.name}}&nbsp;<span class="cpill blue-pill">
-{% if hash['length']>1073741824 %}{{(hash['length']/1073741824)|round(2)}}G
-{% elif hash['length']>1048576 %}{{(hash['length']/1048576)|round(2)}}M
-{% elif hash['length']>1024 %}{{(hash['length']/1024)|round(2)}}K
-{% else %}{{hash['length']}}字节
-{% endif %}
-</span></li>
-</ol>
-</div>
-</div>
 
-        
-<div class="detail-panel detail-width">
-<div class="panel-header">
-真文件列表
-</div>
-<div class="panel-body">
-<ul>
-{% if hash['file_list'] and hash['file_list']|fromjson !=none %}
-{% for f in hash['file_list']|fromjson %}
+{%for f in (hash.info_hash|filelist)%}
 <li>{{f['path']}}&nbsp;<span class="cpill blue-pill">
-{% if f['length']>1073741824 %}{{(f['length']/1073741824)|round(2)}}G
-{% elif f['length']>1048576 %}{{(f['length']/1048576)|round(2)}}M
-{% elif f['length']>1024 %}{{(f['length']/1024)|round(2)}}K
-{% else %}{{f['length']}}字节
+{%if f['length']>1073741824%}
+{{(f['length']/1073741824)|round(2)}}G
+{%elif f['length']>1048576%}
+{{(f['length']/1048576)|round(2)}}M
+{%elif f['length']>1024%}
+{{(f['length']/1024)|round(2)}}K
+{%else%}
+{{f['length']}}字节
 {%endif%}
 </span></li>
 {% endfor %}
 
-{% else %}
-<li>{{hash.name}}&nbsp;<span class="cpill blue-pill">
-{% if hash['length']>1073741824 %}{{(hash['length']/1073741824)|round(2)}}G
-{% elif hash['length']>1048576 %}{{(hash['length']/1048576)|round(2)}}M
-{% elif hash['length']>1024 %}{{(hash['length']/1024)|round(2)}}K
-{% else %}{{hash['length']}}字节
-{% endif %}
-</span></li>
-{% endif %}
-</ul>
+
+</ol>
 </div>
 </div>
 
