@@ -409,14 +409,7 @@ class MyAdminIndexView(AdminIndexView):
         today=int(todaycounts[0]['count(id)'])
         currzsky.close()
         connzsky.close()
-        logfile='/root/zsky/spider.log'
-        if os.path.exists(logfile):
-            body = codecs.open(logfile, 'r' ,encoding='utf-8', errors='ignore').readlines()[-20:]
-        else:
-            os.mknod(logfile)
-            body = codecs.open(logfile, 'r',encoding='utf-8' , errors='ignore').readlines()[-20:]
-        htmlbody = '\n'.join('<p>%s</p>' % line for line in body)
-        return self.render('admin/index.html',total=total,today=today,htmlbody=htmlbody)
+        return self.render('admin/index.html',total=total,today=today)
     @expose('/login/', methods=('GET', 'POST'))
     def login_view(self):
         form = LoginForm(request.form)
