@@ -66,7 +66,6 @@ mkdir /root/zsky/uploads
 systemctl daemon-reload	
 \cp my_debian.cnf /etc/mysql/my.cnf
 echo '请直接回车!'
-mysql_secure_installation
 systemctl start  mysql.service 
 systemctl enable mysql.service
 systemctl start redis-server.service
