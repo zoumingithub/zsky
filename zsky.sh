@@ -133,3 +133,4 @@ echo '当前进程运行状态:'
 pgrep -l nginx
 pgrep -l searchd
 pgrep -l gunicorn
+echo -e '修改管理员密码: python manage.py changepassword\n创建/新增管理员账号: python manage.py create_user'
