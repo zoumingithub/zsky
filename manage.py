@@ -416,7 +416,7 @@ class MyAdminIndexView(AdminIndexView):
         if helpers.validate_form_on_submit(form):
             user = form.get_user()
             if user is None:
-                flash('用户名错误！')
+                flash('用户名不存在！')
             elif not check_password_hash(user.password, form.password.data):
                 flash('密码错误！')
             elif user is not None and check_password_hash(user.password, form.password.data):
@@ -436,7 +436,8 @@ class HashView(ModelView):
     create_modal = True
     edit_modal = True
     can_export = True
-    column_searchable_list = ['info_hash']
+    column_default_sort = ('id', True)
+    column_searchable_list = ['name','info_hash']
     def get_list(self, *args, **kwargs):
         count, data = super(HashView, self).get_list(*args, **kwargs)
         count=10000
@@ -450,6 +451,8 @@ class HashView(ModelView):
 
 
 class TagsView(ModelView):
+    column_default_sort = ('id', True)
+    column_searchable_list = ['tag']
     create_modal = True
     edit_modal = True
     can_export = True
@@ -463,6 +466,8 @@ class TagsView(ModelView):
 
 
 class KeywordsView(ModelView):
+    column_default_sort = ('id', True)
+    column_searchable_list = ['keyword']
     create_modal = True
     edit_modal = True
     can_export = True
@@ -475,6 +480,18 @@ class KeywordsView(ModelView):
 
 class UserView(ModelView):
     #column_exclude_list = 'password'
+    create_modal = True
+    edit_modal = True
+    can_export = True
+    def is_accessible(self):
+        if current_user.is_authenticated :
+            return True
+        return False
+    def inaccessible_callback(self, name, **kwargs):
+        return redirect(url_for('admin.login_view'))
+
+class StatusreportView(ModelView):
+    column_default_sort = ('date', True)
     create_modal = True
     edit_modal = True
     can_export = True
@@ -498,7 +515,7 @@ admin = Admin(app,name='管理中心',base_template='admin/my_master.html',index
 admin.add_view(HashView(Search_Hash, db.session,name='磁力Hash'))
 admin.add_view(KeywordsView(Search_Keywords, db.session,name='首页推荐'))
 admin.add_view(TagsView(Search_Tags, db.session,name='搜索记录'))
-admin.add_view(UserView(Search_Statusreport, db.session,name='爬取统计'))
+admin.add_view(StatusreportView(Search_Statusreport, db.session,name='爬取统计'))
 admin.add_view(FileManager(file_path, '/uploads/', name='文件管理'))
 admin.add_view(UserView(User, db.session,name='用户管理'))
 
