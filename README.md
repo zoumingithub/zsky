@@ -11,7 +11,7 @@ cd zsky&&sh zsky.sh
 
 >此一键包只在Debian8+系统有效，注意：提示输入数据库密码的时候直接回车
 ```Bash
-apt-get -y install git 
+apt-get update&&apt-get -y install git 
 
 git  clone https://github.com/wenguonideshou/zsky.git
 
