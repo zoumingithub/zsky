@@ -210,7 +210,7 @@ app.add_template_filter(tothunder_filter,'tothunder')
 @app.route('/search',methods=['GET','POST'])
 def search():
     form=SearchForm()
-    query=re.sub(r"(['`=\(\)|\-!@~\"&/\\\^\$])", r"\\\1", form.search.data)
+    query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"\\\1", form.search.data)
     if not form.search.data:
         return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
