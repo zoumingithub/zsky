@@ -200,8 +200,14 @@ r.set("totals",6555871)
 @app.route('/',methods=['GET','POST'])
 #@cache.cached(60*60*24)
 def index():
-    r.incr("totals")
-    total=r.get ("totals")
+    conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS,db=DB_NAME_SPHINX, charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
+    curr = conn.cursor()
+    totalsql = 'select count(*) from film'
+    curr.execute(totalsql)
+    totalcounts = curr.fetchall()
+    total = int(totalcounts[0]['count(*)'])
+    curr.close()
+    conn.close(
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
     form=SearchForm()
     return render_template('index.html',form=form,keywords=keywords,total=total)
