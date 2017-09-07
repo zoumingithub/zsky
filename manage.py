@@ -4,6 +4,7 @@ import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
+import redis
 import re
 import base64
 import json
@@ -61,6 +62,7 @@ cache = Cache(app,config = {
     'CACHE_REDIS_PASSWORD': ''
 })
 cache.init_app(app)
+r = redis.Redis(host='localhost',port=6379,db=0)
 
 DB_HOST='127.0.0.1'
 DB_NAME_MYSQL='zsky'
@@ -161,21 +163,6 @@ def load_user(id):
     return User.query.get(int(id))
 
 
-@app.route('/',methods=['GET','POST'])
-#@cache.cached(60*60*24)
-def index():
-    conn = pymysql.connect(host=DB_HOST,port=DB_PORT_SPHINX,user=DB_USER,password=DB_PASS,db=DB_NAME_SPHINX,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
-    curr = conn.cursor()
-    totalsql='select count(*) from film'
-    curr.execute(totalsql)
-    totalcounts=curr.fetchall()
-    total=int(totalcounts[0]['count(*)'])
-    curr.close()
-    conn.close()
-    keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
-    form=SearchForm()
-    return render_template('index.html',form=form,keywords=keywords,total=total)
-
 def make_cache_key(*args, **kwargs):
     path = request.path
     args = str(hash(frozenset(request.args.items())))
@@ -207,10 +194,22 @@ def tothunder_filter(magnet):
     return base64.b64encode('AA'+magnet+'ZZ')
 app.add_template_filter(tothunder_filter,'tothunder')
 
+
+r.set("totals",6555871)
+
+@app.route('/',methods=['GET','POST'])
+#@cache.cached(60*60*24)
+def index():
+    r.incr("totals")
+    total=r.get ("totals")
+    keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
+    form=SearchForm()
+    return render_template('index.html',form=form,keywords=keywords,total=total)
+
 @app.route('/search',methods=['GET','POST'])
 def search():
     form=SearchForm()
-    query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"\\\1", form.search.data)
+    query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     if not form.search.data:
         return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
