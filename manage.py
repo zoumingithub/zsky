@@ -210,7 +210,8 @@ def index():
     conn.close(
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
     form=SearchForm()
-    return render_template('index.html',form=form,keywords=keywords,total=total)
+    today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
+    return render_template('index.html',form=form,keywords=keywords,total=total,today=today)
 
 @app.route('/search',methods=['GET','POST'])
 def search():
