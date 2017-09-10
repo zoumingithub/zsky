@@ -205,7 +205,7 @@ def index():
     totalcounts = curr.fetchall()
     total = int(totalcounts[0]['count(*)'])
     curr.close()
-    conn.close(
+    conn.close()
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
