@@ -15,6 +15,7 @@ import datetime
 from flask import Flask,request,render_template,session,g,url_for,redirect,flash,current_app,jsonify,send_from_directory
 from flask_login import LoginManager,UserMixin,current_user,login_required,login_user,logout_user
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import Date, cast, func
 from flask_script import Manager, Shell
 from flask_migrate import Migrate, MigrateCommand
 from flask_wtf import FlaskForm
