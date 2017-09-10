@@ -62,7 +62,7 @@ cache = Cache(app,config = {
     'CACHE_REDIS_PASSWORD': ''
 })
 cache.init_app(app)
-r = redis.Redis(host='localhost',port=6379,db=0)
+
 
 DB_HOST='127.0.0.1'
 DB_NAME_MYSQL='zsky'
@@ -194,8 +194,6 @@ def tothunder_filter(magnet):
     return base64.b64encode('AA'+magnet+'ZZ')
 app.add_template_filter(tothunder_filter,'tothunder')
 
-
-r.set("totals",6555871)
 
 @app.route('/',methods=['GET','POST'])
 #@cache.cached(60*60*24)
