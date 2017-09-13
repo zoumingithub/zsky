@@ -15,7 +15,7 @@ cd zsky&&sh zsky.sh
 
 >后台地址 http://IP/admin 
 
-
+**更多疑问？请[加群] (http://shang.qq.com/wpa/qunwpa?idkey=d119da6023cc49729a61139ca4b8bb0ee770d8d9a89383939c4a45159f82bc6d)**
 
 **Q：我以前使用的搜片大师/手撕包菜，可以迁移过来吗？**
 
