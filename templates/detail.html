@@ -75,6 +75,14 @@
 </div>
 </div>
 
+<div class="detail-panel detail-width">
+<div class="panel-header">种子标签</div>
+<div class="panel-body">
+{%for fenci in fenci_list%}
+<a href="{{url_for('search_results',query=fenci,page=1)}}">{{fenci.encode('utf8')}}</a>&nbsp;&nbsp;
+{%endfor%}
+</div>
+</div>
      
 <div class="detail-panel detail-width">
 <div class="panel-header">
@@ -82,25 +90,14 @@
 </div>
 <div class="panel-body">
 <ol>
-
 {%for f in (hash.info_hash|filelist)%}
 <li>{{f['path']}}&nbsp;<span class="cpill blue-pill">{{f['length']|filesizeformat}}</span></li>
 {% endfor %}
-
-
 </ol>
 </div>
 </div>
 
-
-<div class="detail-panel detail-width">
-<div class="panel-header">你可能喜欢</div>
-<div class="panel-body">
-{%for fenci in fenci_list%}
-<a href="{{url_for('search_results',query=fenci,page=1)}}">{{fenci.encode('utf8')}}</a>&nbsp;&nbsp;
-{%endfor%}
-</div>
-</div>
+     
 <div class="detail-panel detail-width">
 <div class="panel-header">友情提示</div>
 <div class="panel-body">
