@@ -325,6 +325,7 @@ def search_results_bycreate_time(query,page=1):
     form.search.data=query
     return render_template('list_bycreate_time.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
 
+
 @app.route('/main-search-kw-<query>-requests-<int:page>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_byrequests(query,page=1):
