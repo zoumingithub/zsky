@@ -60,13 +60,13 @@
 </tbody>
 </table>
 <div class="detail-panel detail-width">
-<div class="panel-header">磁力链接</div>
+<div class="panel-header">磁力链接 <input style="float:right; margin-right:16px;" id="copy1" type="button" data-clipboard-target="m_link" value="复制磁力链接" class="">&nbsp;</div>
 <div class="panel-body">
 <img src="{{ url_for('static', filename='magnet.png')}}" ><a href="magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}">magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}</a>
 </div>
 </div>
 <div class="detail-panel detail-width">
-<div class="panel-header">迅雷下载</div>
+<div class="panel-header">迅雷下载 <input style="float:right; margin-right:16px;" id="copy2" type="button" data-clipboard-target="td_link" value="复制迅雷链接" class="">&nbsp;</div>
 <div class="panel-body">
 <div id="xlurl">
 {% set magneturl=("magnet:?xt=urn:btih:"~hash['info_hash'] | upper) %}
@@ -129,7 +129,13 @@
 <span><a href="#">纸上烤鱼</a></span> | <span><a href="#">种子搜索</a></span> | <span><a href="#">磁力链接</a></span>
 </div>
 
-
+<script type="text/javascript" src="{{ url_for('static', filename='ZeroClipboard.min.js')}}"></script>
+<script type="text/javascript">
+// 将【复制链接】按钮充当复制数据的元素载体
+var clip = new ZeroClipboard( document.getElementById("copy1") );
+var clip2 = new ZeroClipboard( document.getElementById("copy2") );
+</script>
+     
 <script charset="gbk" type="text/javascript" src="//www.baidu.com/js/opensug.js"></script>
 <script type="text/javascript">
         var params = { "XOffset": 0, "YOffset": 0, "fontColor": "#444", "fontColorHI": "#000", "fontSize": "16px", "fontFamily": "arial", "borderColor": "gray", "bgcolorHI": "#ebebeb", "sugSubmit": false };
