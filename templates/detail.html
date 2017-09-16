@@ -41,6 +41,7 @@
 <th>创建时间</th>
 <th>热度</th>
 <th>文件大小</th>
+<th>文件数量</th>
 </tr>
 <tr>
 <td>{{hash['category']}}</td>
@@ -51,6 +52,9 @@
 {{(hash['length']/1073741824)|round(2)}}G
 {% else %}{{(hash['length']/1048576)|round(2)}}M
 {%endif%}
+</td>
+<td>
+{{(hash.info_hash|filelist)|count}}
 </td>
 </tr>
 </tbody>
@@ -70,7 +74,6 @@
 </div>
 </div>
 </div>
-
 
      
 <div class="detail-panel detail-width">
