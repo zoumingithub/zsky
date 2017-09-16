@@ -225,6 +225,7 @@ def sensitivewords():
 def search():
     form=SearchForm()
     query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
+    query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
     if query in sensitivewordslist:
         return redirect(url_for('index'))
