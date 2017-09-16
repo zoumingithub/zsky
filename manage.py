@@ -212,10 +212,22 @@ def index():
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
     return render_template('index.html',form=form,keywords=keywords,total=total,today=today)
 
+def sensitivewords():
+    sensitivewordslist = []
+    sensitivefile = os.path.join(os.path.dirname(__file__), 'sensitivewords.txt')
+    with open(sensitivefile, 'rb') as f:
+        for line in f:
+            word = line.strip('\n')
+            sensitivewordslist.append(word)
+    return  sensitivewordslist
+
 @app.route('/search',methods=['GET','POST'])
 def search():
     form=SearchForm()
     query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
+    sensitivewordslist=sensitivewords()
+    if query in sensitivewordslist:
+        return redirect(url_for('index'))
     if not form.search.data:
         return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
