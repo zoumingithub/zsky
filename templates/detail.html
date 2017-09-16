@@ -62,7 +62,7 @@
 <div class="detail-panel detail-width">
 <div class="panel-header">磁力链接</div>
 <div class="panel-body">
-<a href="magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}">magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}</a>
+<img src="{{ url_for('static', filename='magnet.png')}}" ><a href="magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}">magnet:?xt=urn:btih:{{hash['info_hash'] | upper}}</a>
 </div>
 </div>
 <div class="detail-panel detail-width">
@@ -70,7 +70,7 @@
 <div class="panel-body">
 <div id="xlurl">
 {% set magneturl=("magnet:?xt=urn:btih:"~hash['info_hash'] | upper) %}
-<a href="thunder://{{magneturl|tothunder}}">thunder://{{magneturl|tothunder}}</a>
+<img src="{{ url_for('static', filename='xunlei.png')}}" ><a href="thunder://{{magneturl|tothunder}}">thunder://{{magneturl|tothunder}}</a>
 </div>
 </div>
 </div>
