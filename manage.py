@@ -224,7 +224,11 @@ def sensitivewords():
 @app.route('/search',methods=['GET','POST'])
 def search():
     form=SearchForm()
-    query=re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
+    if not g.form.search.data:
+        return redirect(url_for('index'))
+    if re.match(r"(['`=\(\)|\!-@~\"&/\\\^\$]).*?", g.form.search.data) or re.match(r".*?(['`=\(\)|\!-@~\"&/\\\^\$])", g.form.search.data):
+        return redirect(url_for('index'))
+    query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
     if query in sensitivewordslist:
