@@ -226,7 +226,7 @@ def search():
     form=SearchForm()
     if not form.search.data:
         return redirect(url_for('index'))
-    if re.match(r"(['`=\(\)|\!-@~\"&/\\\^\$]).*?", form.search.data) or re.match(r".*?(['`=\(\)|\!-@~\"&/\\\^\$])", form.search.data):
+    if re.match(r"^['`=\(\)\|\!\-\@\~\"\&\/\\\^\$].*?", form.search.data) or re.match(r".*?['`=\(\)\|\!\-\@\~\"\&\/\\\^\$]$", form.search.data):
         return redirect(url_for('index'))
     query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     query = ' '.join(query.split())
