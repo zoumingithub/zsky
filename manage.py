@@ -74,6 +74,8 @@ DB_USER='root'
 DB_PASS=''
 DB_CHARSET='utf8mb4'
 
+sitename="纸上烤鱼"
+domain="http://127.0.0.1/"
 
 class LoginForm(FlaskForm):
     name=StringField('用户名',validators=[DataRequired(),Length(1,32)])
@@ -210,7 +212,7 @@ def index():
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
-    return render_template('index.html',form=form,keywords=keywords,total=total,today=today)
+    return render_template('index.html',form=form,keywords=keywords,total=total,today=today,sitename=sitename)
 
 def sensitivewords():
     sensitivewordslist = []
@@ -269,7 +271,7 @@ def search_results(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-length-<int:page>.html',methods=['GET','POST'])
@@ -303,7 +305,7 @@ def search_results_bylength(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_bylength.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_bylength.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-time-<int:page>.html',methods=['GET','POST'])
@@ -337,7 +339,7 @@ def search_results_bycreate_time(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_bycreate_time.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_bycreate_time.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 
 @app.route('/main-search-kw-<query>-requests-<int:page>.html',methods=['GET','POST'])
@@ -371,7 +373,7 @@ def search_results_byrequests(query,page=1):
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
     form.search.data=query
-    return render_template('list_byrequests.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags)
+    return render_template('list_byrequests.html',form=form,query=query,pages=pages,page=page,hashs=result,counts=counts,taketime=taketime,tags=tags,sitename=sitename)
 
 @app.route('/hash/<info_hash>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
@@ -389,7 +391,7 @@ def detail(info_hash):
     fenci_list=jieba.analyse.extract_tags(result['name'], 8)
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(20)
     form=SearchForm()
-    return render_template('detail.html',form=form,tags=tags,hash=result,fenci_list=fenci_list)
+    return render_template('detail.html',form=form,tags=tags,hash=result,fenci_list=fenci_list,sitename=sitename)
 
 
 @app.route('/sitemap.xml')
@@ -405,7 +407,7 @@ def sitemap():
     for row in rows:
         info_hash = row['info_hash']
         mtime = datetime.datetime.fromtimestamp(int(row['create_time'])).strftime('%Y-%m-%d')
-        url = request.url_root+'hash/{}.html'.format(info_hash)
+        url = domain+'hash/{}.html'.format(info_hash)
         url_xml = '<url><loc>{}</loc><lastmod>{}</lastmod><changefreq>daily</changefreq><priority>0.8</priority></url>'.format(url, mtime)
         sitemaplist.append(url_xml)
     xml_content = '<?xml version="1.0" encoding="UTF-8"?><urlset>{}</urlset>'.format("".join(x for x in sitemaplist))
