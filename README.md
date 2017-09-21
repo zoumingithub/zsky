@@ -38,25 +38,29 @@ A：执行 systemctl restart gunicorn 重启gunicorn
 
 A：在数据量变大后，索引将占用CPU 100%，非常影响用户访问网站，为了最小程度减小此影响 默认设置为每天早上5点更新索引，你想现在更新爬取结果的话，手动执行索引 systemctl restart indexer ，需要注意的是，数据量越大 索引所耗费时间越长
 
-**Q：如何查看索引是否成功？
+**Q：如何查看索引是否成功？**
 
 A：执行 systemctl status indexer 可以看到索引记录
 
-**Q：觉得索引速度有点慢，怎么加快？**
+**Q：觉得索引速度慢，如何加快？**
 
 A：修改sphinx.conf里面的mem_limit = 512M ，根据你的主机的内存使用情况来修改，越大索引越快，最大可以设置2048M
 
-**Q：想确定搜索进程是否正常运行**
+**Q：如何确定搜索进程是否正常运行**
 
 A：执行 systemctl status searchd ，如果是绿色的running说明搜索进程完全正常
 
-**Q：发现又升级了，想重装，直接安装新版本，如何备份数据库？**
+**Q：如何备份数据库？**
 
 A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库  //将提示输入当前密码，数据库导出后存在/root/zsky.sql
 
 **Q：数据库备份后，现在重新安装了程序，如何导入旧数据？**
 
 A：执行 mysql -uroot -p zsky</root/zsky.sql       //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
+
+**Q：如何迁移到新主机？**
+
+A：备份数据库（方法见上面）→ 程序拷贝到新主机 → 安装程序 → 导入数据库（方法见上面）→ 重新索引
 
 **更多疑问？请[加群](http://shang.qq.com/wpa/qunwpa?idkey=d119da6023cc49729a61139ca4b8bb0ee770d8d9a89383939c4a45159f82bc6d)**
 
