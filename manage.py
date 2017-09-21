@@ -42,7 +42,7 @@ app.config['SECRET_KEY'] = 'super-secret'
 #debug_toolbar=DebugToolbarExtension()
 #debug_toolbar.init_app(app)
 #app.config['DEBUG_TB_INTERCEPT_REDIRECTS']=False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:@127.0.0.1:3306/zsky'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://root:123456@127.0.0.1:3306/zsky'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 app.config['SQLALCHEMY_POOL_SIZE']=5000
 db = SQLAlchemy(app)
@@ -71,7 +71,7 @@ DB_PORT_MYSQL=3306
 DB_NAME_SPHINX='film'
 DB_PORT_SPHINX=9306
 DB_USER='root'
-DB_PASS=''
+DB_PASS='123456'
 DB_CHARSET='utf8mb4'
 
 sitename="纸上烤鱼"
