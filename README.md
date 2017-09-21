@@ -15,26 +15,47 @@
 执行  python manage.py init_db  创建表
 
 **Q：如何限制/提高爬取速度？**
+
 A：修改simdht_worker.py里的max_node_qsize=后面的数字，越大爬取越快，越小爬取越慢
+
 **Q：如何修改数据库密码？**
+
 A：执行mysqladmin -uroot -p password 123456!@#$%^     //将提示输入当前密码，123456!@#$%^是新密码
+
 **Q：修改数据库密码后怎么修改程序里的配置？**
+
 A：修改manage.py里的mysql+pymysql://root:密码@127.0.0.1、修改manage.py里的DB_PASS、修改simdht_worker.py里的DB_PASS、修改sphinx.conf里的sql_pass
+
 **Q：怎么确定爬虫是在正常运行？**
+
 A：执行 ps -ef|grep -v grep|grep simdht 如果有结果说明爬虫正在运行
+
 **Q：更新manage.py/模板后怎么立即生效？**
+
 A：执行 systemctl restart gunicorn 重启gunicorn
+
 **Q：为什么首页统计的数据远远小于后台的数据？**
+
 A：在数据量变大后，索引将占用CPU 100%，非常影响用户访问网站，为了最小程度减小此影响 默认设置为每天早上5点更新索引，你想现在更新爬取结果的话，手动执行索引 systemctl restart indexer ，需要注意的是，数据量越大 索引所耗费时间越长
+
 **Q：如何查看索引是否成功？
+
 A：执行 systemctl status indexer 可以看到索引记录
+
 **Q：觉得索引速度有点慢，怎么加快？**
+
 A：修改sphinx.conf里面的mem_limit = 512M ，根据你的主机的内存使用情况来修改，越大索引越快，最大可以设置2048M
+
 **Q：想确定搜索进程是否正常运行**
+
 A：执行 systemctl status searchd ，如果是绿色的running说明搜索进程完全正常
+
 **Q：发现又升级了，想重装，直接安装新版本，如何备份数据库？**
+
 A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库  //将提示输入当前密码，数据库导出后存在/root/zsky.sql
+
 **Q：数据库备份后，现在重新安装了程序，如何导入旧数据？**
+
 A：执行 mysql -uroot -p zsky</root/zsky.sql       //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
 
 **更多疑问？请[加群](http://shang.qq.com/wpa/qunwpa?idkey=d119da6023cc49729a61139ca4b8bb0ee770d8d9a89383939c4a45159f82bc6d)**
