@@ -219,7 +219,7 @@ def sensitivewords():
     sensitivefile = os.path.join(os.path.dirname(__file__), 'sensitivewords.txt')
     with open(sensitivefile, 'rb') as f:
         for line in f:
-            word = line.strip('\n')
+            word = re.compile(line.rstrip('\r\n\t').decode('utf-8'))
             sensitivewordslist.append(word)
     return  sensitivewordslist
 
@@ -233,8 +233,9 @@ def search():
     query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     if not form.search.data:
         return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
@@ -244,8 +245,9 @@ def search():
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -278,8 +280,9 @@ def search_results(query,page=1):
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_bylength(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -312,8 +315,9 @@ def search_results_bylength(query,page=1):
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_bycreate_time(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
@@ -346,8 +350,9 @@ def search_results_bycreate_time(query,page=1):
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def search_results_byrequests(query,page=1):
     sensitivewordslist=sensitivewords()
-    if query in sensitivewordslist:
-        return redirect(url_for('index'))
+    for word in sensitivewordslist:
+        if word.search(query):
+            return redirect(url_for('index'))
     connzsky = pymysql.connect(host=DB_HOST,port=DB_PORT_MYSQL,user=DB_USER,password=DB_PASS,db=DB_NAME_MYSQL,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     currzsky = connzsky.cursor()
     taginsertsql = 'REPLACE INTO search_tags(tag) VALUES(%s)'
