@@ -40,7 +40,7 @@ A：修改simdht_worker.py里的max_node_qsize=后面的数字，越大爬取越
 
 **Q：如何修改数据库密码？**
 
-A：执行mysqladmin -uroot -p password 123456!@#$%^     //将提示输入当前密码，123456!@#$%^是新密码
+A：执行mysqladmin -uroot -p password 123456!@#$%^                     //将提示输入当前密码，123456!@#$%^是新密码
 
 **Q：修改数据库密码后怎么修改程序里的配置？**
 
@@ -72,11 +72,11 @@ A：执行 systemctl status searchd ，如果是绿色的running说明搜索进�
 
 **Q：如何备份数据库？**
 
-A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库  //将提示输入当前密码，数据库导出后存在/root/zsky.sql
+A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库              //将提示输入当前密码，数据库导出后存在/root/zsky.sql
 
 **Q：数据库备份后，现在重新安装了程序，如何导入旧数据？**
 
-A：执行 mysql -uroot -p zsky</root/zsky.sql       //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
+A：执行 mysql -uroot -p zsky</root/zsky.sql                     //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
 
 **Q：如何迁移到新主机？**
 
