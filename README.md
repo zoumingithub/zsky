@@ -12,7 +12,25 @@
 
 执行  python manage.py changepassword  修改管理员密码
 
-执行  python manage.py init_db  创建表
+执行  systemctl start gunicorn  启动网站
+
+执行  systemctl start mariadb  启动数据库
+
+执行  systemctl status gunicorn  查看数据库运行状态
+
+执行  systemctl restart gunicorn  重新启动数据库
+
+执行  systemctl status gunicorn  查看gunicorn运行状态
+
+执行  systemctl restart gunicorn   重新启动网站
+
+执行  systemctl restart indexer  手动重新索引
+
+执行  systemctl start searchd  开启搜索进程
+
+执行  systemctl status searchd  查看搜索进程运行状态
+
+执行  systemctl restart searchd   重新启动搜索进程
 
 **Q：如何限制/提高爬取速度？**
 
