@@ -8,6 +8,8 @@
 
 修改simdht_worker.py里的max_node_qsize的大小调节爬取速度（队列大小）
 
+执行  python manage.py init_db     创建表/平滑升级表结构
+
 执行  python manage.py create_user  创建管理员
 
 执行  python manage.py changepassword  修改管理员密码
