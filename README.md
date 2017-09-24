@@ -18,9 +18,9 @@
 
 执行  systemctl start mariadb  启动数据库
 
-执行  systemctl status gunicorn  查看数据库运行状态
+执行  systemctl status mariadb  查看数据库运行状态
 
-执行  systemctl restart gunicorn  重新启动数据库
+执行  systemctl restart mariadb  重新启动数据库
 
 执行  systemctl status gunicorn  查看gunicorn运行状态
 
