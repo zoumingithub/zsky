@@ -36,7 +36,6 @@ import random
 
 try:
     import libtorrent as lt
-    import ltMetadata
 except:
     lt = None
     print sys.exc_info()[1]
@@ -407,8 +406,8 @@ class Master(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.setDaemon(True)
-        self.queue = Queue()
-        self.metadata_queue = Queue()
+        self.queue = Queue(maxsize = 100000)
+        self.metadata_queue = Queue(maxsize = 100000)
         self.pool = PooledDB(pymysql,50,host=DB_HOST,user=DB_USER,passwd=DB_PASS,db=DB_NAME,port=3306,charset="utf8mb4") #50为连接池里的最少连接数
         self.dbconn = self.pool.connection()
         self.dbcurr = self.dbconn.cursor()
@@ -441,7 +440,7 @@ class Master(Thread):
             return
         info_hash = binhash.encode('hex')
         info['info_hash'] = info_hash
-        # need to build tags
+
         info['tagged'] = False
         info['classified'] = False
         info['requests'] = 1
@@ -454,6 +453,7 @@ class Master(Thread):
                 files = info['files']
         else:
             files = [{'path': info['name'], 'length': info['length']}]
+            
         files.sort(key=lambda z:z['length'], reverse=True)
         bigfname = files[0]['path']
         info['extension'] = get_extension(bigfname).lower()
@@ -470,12 +470,13 @@ class Master(Thread):
             #print '\n', 'Saved', info['info_hash'], info['name'], (time.time()-start_time), 's', address[0], geoip.country_name_by_addr(address[0]),
             self.dbcurr.execute('INSERT INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
             self.dbcurr.connection.commit()
+            self.n_new += 1
             print '\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), u'分类:',info['category'], u'Hash值:',info['info_hash'],u'文件名:', info['name'], u'格式:', info['extension'], u'IP地址:',address[0], u'保存成功!'
         except:
             print self.name, 'save search_hash error', info
             traceback.print_exc()
             return
-        self.n_new += 1
+
 
 
     def run(self):
@@ -498,7 +499,7 @@ class Master(Thread):
             date = (utcnow + datetime.timedelta(hours=8))
             date = datetime.datetime(date.year, date.month, date.day, date.hour, date.minute, date.second)
 
-            # Check if we have this info_hash
+            # 检查infohash是否存在
             self.dbcurr.execute('SELECT id FROM search_hash WHERE info_hash=%s', (info_hash,))
             y = self.dbcurr.fetchone()
             if y:
