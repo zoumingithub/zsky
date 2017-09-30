@@ -471,7 +471,7 @@ class Master(Thread):
             self.dbcurr.execute('INSERT INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
             self.dbcurr.connection.commit()
             self.n_new += 1
-            print '\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), u'分类:',info['category'], u'Hash值:',info['info_hash'],u'文件名:', info['name'], u'格式:', info['extension'], u'IP地址:',address[0], u'保存成功!'
+            print '\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), info['info_hash'], address[0], 'saved!'
         except:
             print self.name, 'save search_hash error', info
             traceback.print_exc()
