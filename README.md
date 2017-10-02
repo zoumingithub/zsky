@@ -34,6 +34,14 @@
 
 执行  systemctl restart searchd   重新启动搜索进程
 
+**Q：如何实现远程主机反向代理本程序？**
+
+A：
+
+修改本机的/etc/systemd/system/gunicorn.service其中的127.0.0.1:8000修改为0.0.0.0:8000然后执行systemctl daemon-reload
+
+本程序所在主机不开启nginx，远程主机开启nginx，配置反向代理，绑定域名，配置文件参考程序内的nginx.conf ，即可使用域名正常访问。
+
 **Q：如何限制/提高爬取速度？**
 
 A：修改simdht_worker.py里的max_node_qsize=后面的数字，越大爬取越快，越小爬取越慢
