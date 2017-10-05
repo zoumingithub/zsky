@@ -6,7 +6,7 @@
 """
 
 
-from gevent import socket
+import socket
 import hashlib
 import os
 import SimpleXMLRPCServer
@@ -18,11 +18,7 @@ import json
 import threading
 from hashlib import sha1
 from random import randint
-from struct import unpack
-
 from socket import inet_ntoa
-from threading import Timer, Thread
-from time import sleep
 from collections import deque
 from Queue import Queue
 import pymysql
