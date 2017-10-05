@@ -5,6 +5,8 @@
 2017.7 我本戏子
 """
 
+
+from gevent import socket
 import hashlib
 import os
 import SimpleXMLRPCServer
@@ -13,11 +15,11 @@ import datetime
 import traceback
 import sys
 import json
-import socket
 import threading
 from hashlib import sha1
 from random import randint
 from struct import unpack
+
 from socket import inet_ntoa
 from threading import Timer, Thread
 from time import sleep
@@ -27,7 +29,6 @@ import pymysql
 from DBUtils.PooledDB import PooledDB
 import math
 from struct import pack, unpack
-from socket import inet_ntoa
 from threading import Timer, Thread
 from time import sleep, time
 from bencode import bencode, bdecode
@@ -41,8 +42,6 @@ except:
     print sys.exc_info()[1]
 
 
-#from metadata import save_metadata
-
 DB_NAME = 'zsky'
 DB_HOST = '127.0.0.1'
 DB_USER = 'root'
@@ -55,31 +54,10 @@ BOOTSTRAP_NODES = (
 TID_LENGTH = 2
 RE_JOIN_DHT_INTERVAL = 3
 TOKEN_LENGTH = 2
-MAX_QUEUE_LT = 2000
-MAX_QUEUE_PT = 2000
 BT_PROTOCOL = "BitTorrent protocol"
 BT_MSG_ID = 20
 EXT_HANDSHAKE_ID = 0
 
-cats = {
-    u'影视': u'影视',
-    u'图像': u'图像',
-    u'文档书籍': u'文档书籍',
-    u'音乐': u'音乐',
-    u'压缩文件': u'压缩文件',
-    u'安装包': u'安装包',
-}
-
-def get_label(name):
-    if name in cats:
-        return cats[name]
-    return u'其他'
-
-def get_label_by_crc32(n):
-    for k in cats:
-        if binascii.crc32(k)&0xFFFFFFFFL == n:
-            return k
-    return u'其他'
 
 def get_extension(name):
     return os.path.splitext(name)[1]
@@ -406,8 +384,8 @@ class Master(Thread):
     def __init__(self):
         Thread.__init__(self)
         self.setDaemon(True)
-        self.queue = Queue(maxsize = 100000)
-        self.metadata_queue = Queue(maxsize = 100000)
+        self.queue = Queue(maxsize = 1000000)
+        self.metadata_queue = Queue(maxsize = 1000000)
         self.pool = PooledDB(pymysql,50,host=DB_HOST,user=DB_USER,passwd=DB_PASS,db=DB_NAME,port=3306,charset="utf8mb4") #50为连接池里的最少连接数
         self.dbconn = self.pool.connection()
         self.dbcurr = self.dbconn.cursor()
@@ -461,14 +439,14 @@ class Master(Thread):
 
         if 'files' in info:
             try:
-                self.dbcurr.execute('INSERT INTO search_filelist VALUES(%s, %s)', (info['info_hash'], json.dumps(info['files'])))
+                self.dbcurr.execute('INSERT IGNORE INTO search_filelist VALUES(%s, %s)', (info['info_hash'], json.dumps(files)))
             except:
                 print self.name, 'insert search_filelist error', sys.exc_info()[1]
-            del info['files']
+            del files
 
         try:
             #print '\n', 'Saved', info['info_hash'], info['name'], (time.time()-start_time), 's', address[0], geoip.country_name_by_addr(address[0]),
-            self.dbcurr.execute('INSERT INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
+            self.dbcurr.execute('INSERT IGNORE INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
             self.dbcurr.connection.commit()
             self.n_new += 1
             print '\n', (datetime.datetime.utcnow()+ datetime.timedelta(hours=8)).strftime("%Y-%m-%d %H:%M:%S"), info['info_hash'], address[0], 'saved!'
@@ -504,7 +482,7 @@ class Master(Thread):
             y = self.dbcurr.fetchone()
             if y:
                 self.n_valid += 1
-                # 更新最近发现时间，请求数
+                # 更新最近发现时间、请求数
                 self.dbcurr.execute('UPDATE search_hash SET last_seen=%s, requests=requests+1 WHERE info_hash=%s', (date, info_hash))
             else:
                 if dtype == 'pt':
@@ -512,7 +490,7 @@ class Master(Thread):
                     t.setDaemon(True)
                     t.start()
                     self.n_downloading_pt += 1
-                elif dtype == 'lt' and self.n_downloading_lt < MAX_QUEUE_LT:
+                elif dtype == 'lt' :
                     t = threading.Thread(target=self.ltdownload_metadata, args=(address, binhash, self.metadata_queue))
                     t.setDaemon(True)
                     t.start()
@@ -602,7 +580,7 @@ class Master(Thread):
     def log_hash(self, binhash, address=None):
         if not lt:
             return
-        if self.n_downloading_lt < MAX_QUEUE_LT:
+        if self.n_downloading_lt :
             self.queue.put([address, binhash, 'lt'])
 
     def fetch_torrent(session, ih, timeout):
