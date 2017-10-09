@@ -216,7 +216,7 @@ def weekhot():
 
 @app.route('/new.html', methods=['GET', 'POST'])
 @cache.cached(timeout=60*5,key_prefix=make_cache_key)
-def new(page=1):
+def new():
     conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS, db=DB_NAME_SPHINX,
                            charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
@@ -230,7 +230,7 @@ def new(page=1):
 
 @app.route('/tag.html', methods=['GET', 'POST'])
 # @cache.cached(timeout=60*60,key_prefix=make_cache_key)
-def tag(page=1):
+def tag():
     conn = pymysql.connect(host=DB_HOST, port=DB_PORT_MYSQL, user=DB_USER, password=DB_PASS, db=DB_NAME_MYSQL,
                            charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
