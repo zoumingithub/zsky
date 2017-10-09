@@ -36,7 +36,7 @@ import pymysql
 
 file_path = os.path.join(os.path.dirname(__file__), 'uploads')
 # Initialize Flask and set some config values
-app = Flask(__name__,template_folder='templates2',static_folder='static2')
+app = Flask(__name__)
 app.config['DEBUG']=True
 app.config['SECRET_KEY'] = 'super-secret'
 #debug_toolbar=DebugToolbarExtension()
