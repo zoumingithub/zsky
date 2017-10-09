@@ -34,6 +34,14 @@
 
 执行  systemctl restart searchd   重新启动搜索进程
 
+**Q：如何修改站点名？**
+
+A：修改manage.py里的常量sitename
+
+**Q：如何修改地图里的域名？**
+
+A：修改manage.py里的常量domain
+
 **Q：如何实现远程主机反向代理本程序？**
 
 A：
