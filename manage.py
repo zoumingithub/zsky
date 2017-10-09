@@ -197,6 +197,36 @@ def tothunder_filter(magnet):
     return base64.b64encode('AA'+magnet+'ZZ')
 app.add_template_filter(tothunder_filter,'tothunder')
 
+thisweek = int(time.mktime(datetime.datetime.now().timetuple())) - 86400 * 7
+
+@app.route('/weekhot.html', methods=['GET', 'POST'])
+@cache.cached(timeout=60*5,key_prefix=make_cache_key)
+def weekhot():
+    conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS, db=DB_NAME_SPHINX,
+                           charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
+    curr = conn.cursor()
+    weekhotsql = 'SELECT * FROM film WHERE create_time>%s order by requests desc OPTION max_matches=200'
+    curr.execute(weekhotsql, thisweek)
+    weekhot = curr.fetchall()
+    curr.close()
+    conn.close()
+    form = SearchForm()
+    return render_template('weekhot.html', form=form, weekhot=weekhot, sitename=sitename)
+
+
+@app.route('/new.html', methods=['GET', 'POST'])
+@cache.cached(timeout=60*5,key_prefix=make_cache_key)
+def new(page=1):
+    conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS, db=DB_NAME_SPHINX,
+                           charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
+    curr = conn.cursor()
+    newestsql = 'SELECT * FROM film order by create_time desc  OPTION max_matches=200'
+    curr.execute(newestsql)
+    newest = curr.fetchall()
+    curr.close()
+    conn.close()
+    form = SearchForm()
+    return render_template('new.html', form=form, newest=newest, sitename=sitename)
 
 @app.route('/',methods=['GET','POST'])
 #@cache.cached(60*60*24)
@@ -209,7 +239,7 @@ def index():
     total = int(totalcounts[0]['count(*)'])
     curr.close()
     conn.close()
-    keywords=Search_Keywords.query.order_by(Search_Keywords.order).all()
+    keywords=Search_Keywords.query.order_by(Search_Keywords.order).limit(10)
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
     return render_template('index.html',form=form,keywords=keywords,total=total,today=today,sitename=sitename)
