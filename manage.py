@@ -36,7 +36,7 @@ import pymysql
 
 file_path = os.path.join(os.path.dirname(__file__), 'uploads')
 # Initialize Flask and set some config values
-app = Flask(__name__)
+app = Flask(__name__,template_folder='templates2',static_folder='static2')
 app.config['DEBUG']=True
 app.config['SECRET_KEY'] = 'super-secret'
 #debug_toolbar=DebugToolbarExtension()
@@ -228,6 +228,17 @@ def new(page=1):
     form = SearchForm()
     return render_template('new.html', form=form, newest=newest, sitename=sitename)
 
+@app.route('/tag.html', methods=['GET', 'POST'])
+# @cache.cached(timeout=60*60,key_prefix=make_cache_key)
+def tag(page=1):
+    conn = pymysql.connect(host=DB_HOST, port=DB_PORT_MYSQL, user=DB_USER, password=DB_PASS, db=DB_NAME_MYSQL,
+                           charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
+    curr = conn.cursor()
+    tags = Search_Tags.query.order_by(Search_Tags.id.desc()).limit(160)
+    form = SearchForm()
+    return render_template('tag.html', form=form, tags=tags, sitename=sitename)
+
+    
 @app.route('/',methods=['GET','POST'])
 #@cache.cached(60*60*24)
 def index():
