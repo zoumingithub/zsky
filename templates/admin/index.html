@@ -10,9 +10,11 @@
 <span class="label label-success">数据概览</span><p>
 	<div class="alert alert-success alert-dismissable">
 	</h4> 共爬取到 {{total}} 条资源, 今日新增 {{today}} 条
-			</div><p>
+			</div>    
+
         {% else %}
-        <form method="POST" action="">
+
+        <form method="POST" action="" class='span6 offset4'>
             {{ form.hidden_tag() if form.hidden_tag }}
             {% for f in form if f.type != 'CSRFTokenField' %}
             <div>
@@ -27,9 +29,10 @@
             {% endif %}
             </div>
             {% endfor %}
-            <button class="btn" type="submit">登录</button>
-    <a class="btn btn-primary" href="/"></i>返回</a>
+            <button class="btn btn-primary" type="submit">登录</button>
+            <a class="btn " href="/"></i>返回</a>
         </form>
+
         {{ link | safe }}
         {% endif %}
     </div>
