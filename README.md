@@ -42,13 +42,9 @@ A：修改manage.py里的常量sitename
 
 A：修改manage.py里的常量domain
 
-**Q：如何实现远程主机反向代理本程序？**
+**Q：如何实现远程主机反向代理本机的程序？**
 
-A：
-
-修改本机的/etc/systemd/system/gunicorn.service其中的127.0.0.1:8000修改为0.0.0.0:8000然后执行systemctl daemon-reload
-
-本程序所在主机不开启nginx，远程主机开启nginx，配置反向代理，绑定域名，配置文件参考程序内的nginx.conf ，即可使用域名正常访问。
+A：修改本机的/etc/systemd/system/gunicorn.service其中的127.0.0.1:8000修改为0.0.0.0:8000然后执行systemctl daemon-reload，然后执行systemctl restart gunicorn，本机不开启nginx，远程主机开启nginx、配置反向代理、绑定域名即可，nginx的配置文件参考程序内的nginx.conf 。
 
 **Q：如何限制/提高爬取速度？**
 
@@ -56,7 +52,7 @@ A：修改simdht_worker.py里的max_node_qsize=后面的数字，越大爬取越
 
 **Q：如何修改数据库密码？**
 
-A：执行mysqladmin -uroot -p password 123456!@#$%^                     //将提示输入当前密码，123456!@#$%^是新密码
+A：执行mysqladmin -uroot -p password 123456!@#$%^            //将提示输入当前密码，123456!@#$%^是新密码
 
 **Q：修改数据库密码后怎么修改程序里的配置？**
 
@@ -70,7 +66,7 @@ A：执行 ps -ef|grep -v grep|grep simdht 如果有结果说明爬虫正在运�
 
 A：执行 systemctl restart gunicorn 重启gunicorn
 
-**Q：为什么首页统计的数据远远小于后台的数据？**
+**Q：为什么首页统计的数据小于后台的数据？**
 
 A：在数据量变大后，索引将占用CPU 100%，非常影响用户访问网站，为了最小程度减小此影响 默认设置为每天早上5点更新索引，你想现在更新爬取结果的话，手动执行索引 systemctl restart indexer ，需要注意的是，数据量越大 索引所耗费时间越长
 
@@ -80,7 +76,7 @@ A：执行 systemctl status indexer 可以看到索引记录
 
 **Q：觉得索引速度慢，如何加快？**
 
-A：修改sphinx.conf里面的mem_limit = 512M ，根据你的主机的内存使用情况来修改，越大索引越快，最大可以设置2048M
+A：修改sphinx.conf里面的mem_limit = 512M ，根据你的主机的内存使用情况来修改，数值越大索引越快，最大可以设置为2048M
 
 **Q：如何确定搜索进程是否正常运行**
 
@@ -88,11 +84,11 @@ A：执行 systemctl status searchd ，如果是绿色的running说明搜索进�
 
 **Q：如何备份数据库？**
 
-A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库              //将提示输入当前密码，数据库导出后存在/root/zsky.sql
+A：执行 mysqldump -uroot -p zsky>/root/zsky.sql  导出数据库        //将提示输入当前密码，数据库导出后存在/root/zsky.sql
 
 **Q：数据库备份后，现在重新安装了程序，如何导入旧数据？**
 
-A：执行 mysql -uroot -p zsky</root/zsky.sql                     //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
+A：执行 mysql -uroot -p zsky</root/zsky.sql       //假设你的旧数据库文件是/root/zsky.sql，将提示输入当前密码，输入后耐心等待
 
 **Q：如何迁移到新主机？**
 
