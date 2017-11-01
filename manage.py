@@ -250,7 +250,7 @@ def index():
     total = int(totalcounts[0]['count(*)'])
     curr.close()
     conn.close()
-    keywords=Search_Keywords.query.order_by(Search_Keywords.order).limit(10)
+    keywords=Search_Keywords.query.order_by(Search_Keywords.order).limit(6)
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
     return render_template('index.html',form=form,keywords=keywords,total=total,today=today,sitename=sitename)
