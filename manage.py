@@ -272,6 +272,7 @@ def search():
     if re.match(r"^['`=\(\)\|\!\-\@\~\"\&\/\\\^\$].*?", form.search.data) or re.match(r".*?['`=\(\)\|\!\-\@\~\"\&\/\\\^\$]$", form.search.data):
         return redirect(url_for('index'))
     query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
+    query = re.sub(r"(-+)", r"-", query)
     query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
     for word in sensitivewordslist:
