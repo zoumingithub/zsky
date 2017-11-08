@@ -90,7 +90,7 @@ class SearchForm(FlaskForm):
 
 
 class Search_Filelist(db.Model):
-    """ 这个表可以定期清空数据 """
+    """ 文件列表 """
     __tablename__ = 'search_filelist'
     info_hash = db.Column(db.String(40), primary_key=True,nullable=False)
     file_list = db.Column(db.Text,nullable=False)
@@ -154,7 +154,7 @@ class User(db.Model, UserMixin):
     def get_id(self):
         return self.id
     def __unicode__(self):
-        return self.username
+        return self.name
 
 def make_shell_context():
     return dict(app=app, db=db, Search_Filelist=Search_Filelist, Search_Hash=Search_Hash, Search_Keywords=Search_Keywords,Search_Tags=Search_Tags, Search_Statusreport=Search_Statusreport, User=User)
@@ -186,12 +186,6 @@ def todate_filter(s):
     return datetime.datetime.fromtimestamp(int(s)).strftime('%Y-%m-%d')
 app.add_template_filter(todate_filter,'todate')
 
-def fromjson_filter(s):
-    try:
-        return json.loads(s)
-    except ValueError:
-        pass
-app.add_template_filter(fromjson_filter,'fromjson')
 
 def tothunder_filter(magnet):
     return base64.b64encode('AA'+magnet+'ZZ')
@@ -267,19 +261,14 @@ def sensitivewords():
 @app.route('/search',methods=['GET','POST'])
 def search():
     form=SearchForm()
-    if not form.search.data:
-        return redirect(url_for('index'))
-    if re.match(r"^['`=\(\)\|\!\-\@\~\"\&\/\\\^\$].*?", form.search.data) or re.match(r".*?['`=\(\)\|\!\-\@\~\"\&\/\\\^\$]$", form.search.data):
+    if not form.search.data or re.match(r"^['`=\(\)\|\!\-\@\~\"\&\/\\\^\$].*?", form.search.data) or re.match(r".*?['`=\(\)\|\!\-\@\~\"\&\/\\\^\$]$", form.search.data):
         return redirect(url_for('index'))
     query = re.sub(r"(['`=\(\)|\!@~\"&/\\\^\$])", r"", form.search.data)
     query = re.sub(r"(-+)", r"-", query)
-    query = ' '.join(query.split())
     sensitivewordslist=sensitivewords()
     for word in sensitivewordslist:
         if word.search(query):
             return redirect(url_for('index'))
-    if not form.search.data:
-        return redirect(url_for('index'))
     return redirect(url_for('search_results',query=query,page=1))
 
 
@@ -297,7 +286,6 @@ def search_results(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    #page=request.args.get('page',1,type=int)
     conn = pymysql.connect(host=DB_HOST,port=DB_PORT_SPHINX,user=DB_USER,password=DB_PASS,db=DB_NAME_SPHINX,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
     querysql='SELECT * FROM film WHERE MATCH(%s) limit %s,20 OPTION max_matches=50000'
@@ -332,7 +320,6 @@ def search_results_bylength(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    #page=request.args.get('page',1,type=int)
     conn = pymysql.connect(host=DB_HOST,port=DB_PORT_SPHINX,user=DB_USER,password=DB_PASS,db=DB_NAME_SPHINX,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY length DESC limit %s,20 OPTION max_matches=50000'
@@ -367,7 +354,6 @@ def search_results_bycreate_time(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    #page=request.args.get('page',1,type=int)
     conn = pymysql.connect(host=DB_HOST,port=DB_PORT_SPHINX,user=DB_USER,password=DB_PASS,db=DB_NAME_SPHINX,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY create_time DESC limit %s,20 OPTION max_matches=50000'
@@ -402,7 +388,6 @@ def search_results_byrequests(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    #page=request.args.get('page',1,type=int)
     conn = pymysql.connect(host=DB_HOST,port=DB_PORT_SPHINX,user=DB_USER,password=DB_PASS,db=DB_NAME_SPHINX,charset=DB_CHARSET,cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY requests DESC limit %s,20 OPTION max_matches=50000'
