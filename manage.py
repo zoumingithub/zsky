@@ -75,7 +75,7 @@ DB_PASS='123456'
 DB_CHARSET='utf8mb4'
 
 sitename="纸上烤鱼"
-domain="http://127.0.0.1/"
+domain="http://116.196.82.73/"
 
 class LoginForm(FlaskForm):
     name=StringField('用户名',validators=[DataRequired(),Length(1,32)])
