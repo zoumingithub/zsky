@@ -192,6 +192,7 @@ def tothunder_filter(magnet):
 app.add_template_filter(tothunder_filter,'tothunder')
 
 def sphinx_conn():
+    global conn,curr
     conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS, db=DB_NAME_SPHINX,
                            charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
