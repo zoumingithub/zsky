@@ -75,7 +75,9 @@ DB_PASS='123456'
 DB_CHARSET='utf8mb4'
 
 sitename="纸上烤鱼"
+#站点名
 domain="http://116.196.82.73/"
+#sitemap里的域名
 
 class LoginForm(FlaskForm):
     name=StringField('用户名',validators=[DataRequired(),Length(1,32)])
@@ -97,6 +99,7 @@ class Search_Filelist(db.Model):
 
 
 class Search_Hash(db.Model,UserMixin):
+    """ Hash列表 """
     __tablename__ = 'search_hash'
     id = db.Column(db.Integer,primary_key=True,nullable=False,autoincrement=True)
     info_hash = db.Column(db.String(40),unique=True)
@@ -140,6 +143,7 @@ class Search_Statusreport(db.Model):
     
 
 class User(db.Model, UserMixin):
+    """ 用户表 """
     __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True,autoincrement=True)
     email = db.Column(db.String(50),nullable=False)
@@ -192,13 +196,12 @@ def tothunder_filter(magnet):
 app.add_template_filter(tothunder_filter,'tothunder')
 
 def sphinx_conn():
-    global conn,curr
     conn = pymysql.connect(host=DB_HOST, port=DB_PORT_SPHINX, user=DB_USER, password=DB_PASS, db=DB_NAME_SPHINX,
                            charset=DB_CHARSET, cursorclass=pymysql.cursors.DictCursor)
     curr = conn.cursor()
-    return curr
+    return (conn,curr)
     
-def sphinx_close():
+def sphinx_close(curr,conn):
     curr.close()
     conn.close()
 
@@ -207,11 +210,11 @@ thisweek = int(time.mktime(datetime.datetime.now().timetuple())) - 86400 * 7
 @app.route('/weekhot.html', methods=['GET', 'POST'])
 @cache.cached(timeout=60*5,key_prefix=make_cache_key)
 def weekhot():
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     weekhotsql = 'SELECT * FROM film WHERE create_time>%s order by requests desc limit 50'
     curr.execute(weekhotsql, thisweek)
     weekhot = curr.fetchall()
-    sphinx_close()
+    sphinx_close(curr,conn)
     form = SearchForm()
     return render_template('weekhot.html', form=form, weekhot=weekhot, sitename=sitename)
 
@@ -219,11 +222,11 @@ def weekhot():
 @app.route('/new.html', methods=['GET', 'POST'])
 @cache.cached(timeout=60*5,key_prefix=make_cache_key)
 def new():
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     newestsql = 'SELECT * FROM film order by create_time desc limit 50'
     curr.execute(newestsql)
     newest = curr.fetchall()
-    sphinx_close()
+    sphinx_close(curr,conn)
     form = SearchForm()
     return render_template('new.html', form=form, newest=newest, sitename=sitename)
 
@@ -238,12 +241,12 @@ def tag():
 @app.route('/',methods=['GET','POST'])
 #@cache.cached(60*60*24)
 def index():
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     totalsql = 'select count(*) from film'
     curr.execute(totalsql)
     totalcounts = curr.fetchall()
     total = int(totalcounts[0]['count(*)'])
-    sphinx_close()
+    sphinx_close(curr,conn)
     keywords=Search_Keywords.query.order_by(Search_Keywords.order).limit(6)
     form=SearchForm()
     today = db.session.query(func.sum(Search_Statusreport.new_hashes)).filter(cast(Search_Statusreport.date, Date) == datetime.date.today()).scalar()
@@ -286,7 +289,7 @@ def search_results(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT * FROM film WHERE MATCH(%s) limit %s,20 OPTION max_matches=50000'
     curr.execute(querysql,[query,(page-1)*20])
     result=curr.fetchall()
@@ -296,7 +299,7 @@ def search_results(query,page=1):
     resultcounts=curr.fetchall()
     counts=int(resultcounts[0]['Value'])
     taketime=float(resultcounts[2]['Value'])
-    sphinx_close()
+    sphinx_close(curr,conn)
     pages=(counts+19)/20
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
@@ -318,7 +321,7 @@ def search_results_bylength(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY length DESC limit %s,20 OPTION max_matches=50000'
     curr.execute(querysql,[query,(page-1)*20])
     result=curr.fetchall()
@@ -328,7 +331,7 @@ def search_results_bylength(query,page=1):
     resultcounts=curr.fetchall()
     counts=int(resultcounts[0]['Value'])
     taketime=float(resultcounts[2]['Value'])
-    sphinx_close()
+    sphinx_close(curr,conn)
     pages=(counts+19)/20
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
@@ -350,7 +353,7 @@ def search_results_bycreate_time(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY create_time DESC limit %s,20 OPTION max_matches=50000'
     curr.execute(querysql,[query,(page-1)*20])
     result=curr.fetchall()
@@ -360,7 +363,7 @@ def search_results_bycreate_time(query,page=1):
     resultcounts=curr.fetchall()
     counts=int(resultcounts[0]['Value'])
     taketime=float(resultcounts[2]['Value'])
-    sphinx_close()
+    sphinx_close(curr,conn)
     pages=(counts+19)/20
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
@@ -382,7 +385,7 @@ def search_results_byrequests(query,page=1):
     connzsky.commit()
     currzsky.close()
     connzsky.close()
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT * FROM film WHERE MATCH(%s) ORDER BY requests DESC limit %s,20 OPTION max_matches=50000'
     curr.execute(querysql,[query,(page-1)*20])
     result=curr.fetchall()
@@ -392,7 +395,7 @@ def search_results_byrequests(query,page=1):
     resultcounts=curr.fetchall()
     counts=int(resultcounts[0]['Value'])
     taketime=float(resultcounts[2]['Value'])
-    sphinx_close()
+    sphinx_close(curr,conn)
     pages=(counts+19)/20
     tags=Search_Tags.query.order_by(Search_Tags.id.desc()).limit(50)
     form=SearchForm()
@@ -402,11 +405,11 @@ def search_results_byrequests(query,page=1):
 @app.route('/hash/<info_hash>.html',methods=['GET','POST'])
 #@cache.cached(timeout=60*60,key_prefix=make_cache_key)
 def detail(info_hash):
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT * FROM film WHERE info_hash=%s'
     curr.execute(querysql,info_hash)
     result=curr.fetchone()
-    sphinx_close()
+    sphinx_close(curr,conn)
     #hash=Search_Hash.query.filter_by(id=id).first()
     if not result:
         return redirect(url_for('index'))        
@@ -418,11 +421,11 @@ def detail(info_hash):
 
 @app.route('/sitemap.xml')
 def sitemap():    
-    curr = sphinx_conn()
+    conn,curr = sphinx_conn()
     querysql='SELECT info_hash,create_time FROM film order by create_time desc limit 100'
     curr.execute(querysql)
     rows=curr.fetchall()
-    sphinx_close()
+    sphinx_close(curr,conn)
     sitemaplist=[]
     for row in rows:
         info_hash = row['info_hash']
