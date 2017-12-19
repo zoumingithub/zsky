@@ -41,7 +41,7 @@ except:
 DB_NAME = 'zsky'
 DB_HOST = '127.0.0.1'
 DB_USER = 'root'
-DB_PASS = '123456'
+DB_PASS = 'zoumin'
 BOOTSTRAP_NODES = (
     ("router.bittorrent.com", 6881),
     ("dht.transmissionbt.com", 6881),
@@ -579,7 +579,7 @@ class Master(Thread):
         if self.n_downloading_lt :
             self.queue.put([address, binhash, 'lt'])
 
-    def fetch_torrent(session, ih, timeout):
+    def fetch_torrent(self,session, ih, timeout):
         name = ih.upper()
         url = 'magnet:?xt=urn:btih:%s' % (name,)
         data = ''
@@ -612,7 +612,7 @@ class Master(Thread):
         session.remove_torrent(handle)
         return meta
 
-    def ltdownload_metadata(address, binhash, metadata_queue, timeout=40):
+    def ltdownload_metadata(self,address, binhash, metadata_queue, timeout=40):
         metadata = None
         start_time = time.time()
         try:
@@ -624,7 +624,7 @@ class Master(Thread):
             session.add_dht_router('dht.transmission.com',6881)
             session.add_dht_router('127.0.0.1',6881)
             session.start_dht()
-            metadata = fetch_torrent(session, binhash.encode('hex'), timeout)
+            metadata = self.fetch_torrent(session, binhash.encode('hex'), timeout)
             session = None
         except:
             traceback.print_exc()
@@ -633,7 +633,7 @@ class Master(Thread):
 
     def download_metadata(self, address, infohash, metadata_queue, timeout=5):
         metadata = None
-        start_time = time()
+        start_time = time.time()
         try:
             the_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             the_socket.settimeout(timeout)
