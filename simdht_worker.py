@@ -30,6 +30,7 @@ from time import sleep, time
 from bencode import bencode, bdecode
 import binascii
 import random
+import traceback
 
 try:
     import libtorrent as lt
@@ -217,7 +218,8 @@ class DHTClient(Thread):
     def send_krpc(self, msg, address):
         try:
             self.ufd.sendto(bencode(msg), address)
-        except Exception:
+        except Exception as e:
+            print "krpc expcetion ",traceback.format_exc(e)
             pass
 
     def send_find_node(self, address, nid=None):
@@ -236,6 +238,7 @@ class DHTClient(Thread):
 
     def join_DHT(self):
         for address in BOOTSTRAP_NODES:
+            print "sent addr ", address
             self.send_find_node(address)
 
     def re_join_DHT(self):
@@ -245,11 +248,14 @@ class DHTClient(Thread):
 
     def auto_send_find_node(self):
         wait = 1.0 / self.max_node_qsize
+        print "auto_send_find_node"
         while True:
             try:
                 node = self.nodes.popleft()
                 self.send_find_node((node.ip, node.port), node.nid)
-            except IndexError:
+            except IndexError as e:
+                print "Index Error {}".format(e)
+                print traceback.format_exc(e)
                 pass
             try:
                 sleep(wait)
@@ -260,8 +266,10 @@ class DHTClient(Thread):
         nodes = decode_nodes(msg["r"]["nodes"])
         for node in nodes:
             (nid, ip, port) = node
-            if len(nid) != 20: continue
-            if ip == self.bind_ip: continue
+            if len(nid) != 20:
+                continue
+            if ip == self.bind_ip:
+                continue
             n = KNode(nid, ip, port)
             self.nodes.append(n)
 
@@ -293,7 +301,8 @@ class DHTServer(DHTClient):
                 (data, address) = self.ufd.recvfrom(65536)
                 msg = bdecode(data)
                 self.on_message(msg, address)
-            except Exception:
+            except Exception as e:
+                print "Exception ",traceback.format_exc(e)
                 pass
 
     def on_message(self, msg, address):
@@ -373,6 +382,7 @@ class DHTServer(DHTClient):
             }
             self.send_krpc(msg, address)
         except KeyError:
+            print "KeyError ", traceback.format_exc()
             pass
 
 
@@ -441,7 +451,7 @@ class Master(Thread):
             del files
 
         try:
-            #print '\n', 'Saved', info['info_hash'], info['name'], (time.time()-start_time), 's', address[0], geoip.country_name_by_addr(address[0]),
+            print '\n', 'Saved', info['info_hash'], info['name'], (time.time()-start_time), 's', address[0], geoip.country_name_by_addr(address[0]),
             self.dbcurr.execute('INSERT IGNORE INTO search_hash(info_hash,category,data_hash,name,extension,classified,source_ip,tagged,length,create_time,last_seen,requests,comment,creator) VALUES(%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)',(info['info_hash'], info['category'], info['data_hash'], info['name'], info['extension'], info['classified'], info['source_ip'], info['tagged'], info['length'], info['create_time'], info['last_seen'], info['requests'], info.get('comment',''), info.get('creator','')))
             self.dbcurr.connection.commit()
             self.n_new += 1
@@ -459,6 +469,7 @@ class Master(Thread):
         while True:
             while self.metadata_queue.qsize() > 0:
                 self.got_torrent()
+            print 'got torrent()'
             address, binhash, dtype = self.queue.get()
             if binhash in self.visited:
                 continue
@@ -597,7 +608,7 @@ class Master(Thread):
         #print 'downloading metadata:', url
         handle.set_sequential_download(1)
         meta = None
-        down_time = time.time()
+        down_time = time()
         down_path = None
         for i in xrange(0, timeout):
             if handle.has_metadata():
@@ -606,7 +617,7 @@ class Master(Thread):
                 #print 'status', 'p', status.num_peers, 'g', status.dht_global_nodes, 'ts', status.dht_torrents, 'u', status.total_upload, 'd', status.total_download
                 meta = info.metadata()
                 break
-            time.sleep(1)
+            sleep(1)
         if down_path and os.path.exists(down_path):
             os.system('rm -rf "%s"' % down_path)
         session.remove_torrent(handle)
@@ -614,7 +625,7 @@ class Master(Thread):
 
     def ltdownload_metadata(self,address, binhash, metadata_queue, timeout=40):
         metadata = None
-        start_time = time.time()
+        start_time = time()
         try:
             session = lt.session()
             r = random.randrange(10000, 50000)
@@ -633,7 +644,7 @@ class Master(Thread):
 
     def download_metadata(self, address, infohash, metadata_queue, timeout=5):
         metadata = None
-        start_time = time.time()
+        start_time = time()
         try:
             the_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             the_socket.settimeout(timeout)
@@ -697,6 +708,7 @@ if __name__ == "__main__":
     rpcthread.setDaemon(True)
     rpcthread.start()
 
-    dht = DHTServer(master, "0.0.0.0", 6881, max_node_qsize=2000)
+    print "starting DHTServer"
+    dht = DHTServer(master, "0.0.0.0", 6881, max_node_qsize=20000)
     dht.start()
     dht.auto_send_find_node()
