@@ -11,7 +11,11 @@ from bencode import bencode, bdecode
 import logging
 import traceback
 import time
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(level=logging.INFO, 
+                    format='%(asctime)s %(filename)s %(funcName)s %(levelname)s %(message)s',
+                    datefmt='%d %b %Y %H:%M:%S',
+                    filename='crawler.log',
+                    filemode='w')
 
 BOOTSTRAP_NODES = [ ("router.bittorrent.com", 6881), ("dht.transmissionbt.com", 6881), ("router.utorrent.com", 6881) ]
 TID_LENGTH = 4
@@ -68,11 +72,12 @@ class BucketFull(Exception):
 
 class KRPC(object):
     def __init__(self):
-        self.types = { "r": self.response_received, "q": self.query_received }
+        self.types = { "r": self.response_received, "q": self.query_received ,"e":self.error_received}
         self.actions = { "ping": self.ping_received,
                          "find_node": self.find_node_received,
                          "get_peers": self.get_peers_received,
                          "announce_peer": self.announce_peer_received,
+                         "e": self.error_received,
                         }
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1024*1024*2)
@@ -81,6 +86,7 @@ class KRPC(object):
         self.err_send = 0
 
     def response_received(self, msg, address):
+        logging.info("response received from {}".format(address))
         self.find_node_handler(msg)
 
     def query_received(self, msg, address):
@@ -104,13 +110,43 @@ class KRPC(object):
 
 
 
-
+class DHTNode:
+    def __init__(self,nid,ip,port):
+        self.nid = nid
+        self.ip = ip
+        self.port = port
+import Queue
+import time
+import threading
+import traceback
 class Client(KRPC):
     def __init__(self, table):
         self.table = table
         timer(KRPC_TIMEOUT, self.timeout)
         timer(REBORN_TIME, self.reborn)
         KRPC.__init__(self)
+        self.node_queue = Queue.Queue(maxsize = 1000000)
+    
+    def process_node_queue(self):
+        logging.info('start processing node queue')
+        while True:
+            while self.node_queue.empty():
+                logging.info('node_queue is empty')
+                time.sleep(5)
+            node = self.node_queue.get()
+            try:
+                self.find_node((node.ip,node.port),node.nid)
+                #logging.info('processed node {} remaining {}'.format(node,self.node_queue.qsize()))
+            except Exception as e:
+                logging.warning('failed to process node {}'.format(node))
+    def start_query_thread(self):
+        query_thread = threading.Thread(target=self.process_node_queue)
+        query_thread.setDaemon(True)
+        query_thread.start()
+ 
+    def add_node(self,address,nid=None):
+        self.node_queue.put(DHTNode(nid,address[0],address[1]))
+
     def find_node(self, address, nid=None):
         nid = self.get_neighbor(nid) if nid else self.table.nid
         tid = entropy(TID_LENGTH)
@@ -130,13 +166,16 @@ class Client(KRPC):
                     continue
                 if nid == self.table.nid:
                     continue
-                self.find_node( (ip, port), nid )
+                #logging.info("{}".format(nid.encode("hex")))
+                self.add_node((ip,port),nid)
+                #self.find_node( (ip, port), nid )
         except KeyError:
             pass
 
     def joinDHT(self):
         for address in BOOTSTRAP_NODES:
-            self.find_node(address)
+            self.add_node(address)
+            #self.find_node(address)
     def timeout(self):
         if len( self.table.buckets ) <2:
             self.joinDHT()
@@ -153,10 +192,12 @@ class Client(KRPC):
                 #logging.info("received data {} from address {}".format(data,address))
                 msg = bdecode(data)
                 self.types[msg["y"]](msg, address)
-            except Exception:
+            except Exception, e:
+                logging.warning('failed to process msg {} exception {}'.format(data,traceback.format_exc(e)))
                 pass
     def get_neighbor(self, target):
         return target[:10]+random_id()[10:]
+        
 class Server(Client):
     def __init__(self, master, table, port):
         self.table = table
@@ -170,9 +211,12 @@ class Server(Client):
             msg = { "t": msg["t"],
                     "y": "r",
                     "r": {"id": self.get_neighbor(nid)}
+                    #"r": {"id": self.table.nid}
                 }
             self.send_krpc(msg, address)
-            self.find_node(address, nid)
+            #self.find_node(address, nid)
+            self.add_node(address, nid)
+            logging.info("{} {}".format(msg,address))
         except KeyError:
             pass
 
@@ -183,12 +227,14 @@ class Server(Client):
             nid = msg["a"]["id"]
             msg = { "t": msg["t"],
                     "y": "r",
-                    "r": { "id": self.get_neighbor(target),
+                    "r": { "id": self.get_neighbor(nid),
                     "nodes": encode_nodes(neighbors) }
                 }
             self.table.append(KNode(nid, *address))
             self.send_krpc(msg, address)
-            self.find_node(address, nid)
+            #self.find_node(address, nid)
+            self.add_node(address, nid)
+            logging.info("{} {}".format(address,nid.encode('hex')))
         except KeyError:
             pass
 
@@ -206,11 +252,15 @@ class Server(Client):
             self.table.append(KNode(nid, *address))
             self.send_krpc(msg, address)
             #self.master.log(infohash)
-            self.master.log_hash(infohash, address)
-            self.find_node(address, nid)
-        except Exception as e:
+            #self.master.log_hash(infohash, address)
+            #self.find_node(address, nid)
+            self.add_node(address,nid)
+            logging.info('infohash %s'%infohash.encode('hex'))
+        except Exception, e:
             logging.info("get_peers exception {}".format(traceback.format_exc(e)))
             pass
+    def error_received(self,msg,address):
+        logging.warning("error {} {}".format(msg,address))
     def announce_peer_received(self, msg, address):
         try:
             infohash = msg["a"]["info_hash"]
@@ -222,15 +272,17 @@ class Server(Client):
             token = msg["a"]["token"]
             self.table.append(KNode(nid, *address))
             self.send_krpc(msg, address)
-            self.master.log(infohash)
+            logging.info("annouce_peer {} {}".format(infohash.encode('hex'),address))
+            #self.master.log(infohash)
             tid = msg["t"]
             if infohash[:TOKEN_LENGTH] == token:
                 if msg["a"].has_key("implied_port ") and msg["a"]["implied_port "] != 0:
                     port = address[1]
                 else:
                     port = msg["a"]["port"]
-                self.master.log_announce(infohash, (address[0], port))
-            self.find_node(address, nid)
+                #self.master.log_announce(infohash, (address[0], port))
+                logging.info("verified infohash {} {}".format(infohash,address))
+            self.add_node(address, nid)
         except KeyError:
             pass
 # The class is instantiated once only.
@@ -374,13 +426,18 @@ from crawler_log import Master,rpc_server
 import threading
 if __name__ == "__main__":
     # max_node_qsize bigger, bandwith bigger, spped higher
+    '''
+    logging.info("Crawler started")
     master = Master()
+    master.setDaemon(True)
     master.start()
-
+    logging.info("master set up")
     rpcthread = threading.Thread(target=rpc_server)
     rpcthread.setDaemon(True)
     rpcthread.start()
-
+    '''
     print "starting DHTServer"
-    s = Server(master, KTable(random_id()), 8001)
+    master = None
+    s = Server(master, KTable(random_id()), 6881)
+    s.start_query_thread()
     s.start()
