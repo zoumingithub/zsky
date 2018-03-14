@@ -86,7 +86,6 @@ class KRPC(object):
         self.err_send = 0
 
     def response_received(self, msg, address):
-        logging.info("response received from {}".format(address))
         self.find_node_handler(msg)
 
     def query_received(self, msg, address):
@@ -126,7 +125,7 @@ class Client(KRPC):
         timer(REBORN_TIME, self.reborn)
         KRPC.__init__(self)
         self.node_queue = Queue.Queue(maxsize = 1000000)
-    
+        self.trans_table = {} 
     def process_node_queue(self):
         logging.info('start processing node queue')
         while True:
@@ -159,16 +158,31 @@ class Client(KRPC):
 
     def find_node_handler(self, msg):
         try:
-            nodes = decode_nodes(msg["r"]["nodes"])
-            for node in nodes:
-                (nid, ip, port) = node
-                if len(nid) != 20:
-                    continue
-                if nid == self.table.nid:
-                    continue
-                #logging.info("{}".format(nid.encode("hex")))
-                self.add_node((ip,port),nid)
-                #self.find_node( (ip, port), nid )
+            trans_id = msg["t"]
+            if trans_id in self.trans_table:
+                infohash,rsp_type,send_time = self.trans_table.pop(trans_id)
+                if "values" in msg["r"]:
+                    nodes = msg["r"]["values"]
+                    for node in nodes:
+                        ip = inet_ntoa(node[:4])
+                        port = unpack("!H", node[4:])
+                        logging.info('peer for hash {} {}'.format(infohash.encode('hex'),(ip,port)))
+                else:
+                    nodes = decode_nodes(msg["r"]["nodes"])
+                    for node in nodes:
+                        #logging.info("get_peer_rsp {} {}".format(infohash.encode('hex'),node[0].encode('hex')))
+                        self.find_peers(infohash,node[1:])
+            else:
+                nodes = decode_nodes(msg["r"]["nodes"])
+                for node in nodes:
+                    (nid, ip, port) = node
+                    if len(nid) != 20:
+                        continue
+                    if nid == self.table.nid:
+                        continue
+                    #logging.info("{}".format(nid.encode("hex")))
+                    self.add_node((ip,port),nid)
+                    #self.find_node( (ip, port), nid )
         except KeyError:
             pass
 
@@ -193,7 +207,7 @@ class Client(KRPC):
                 msg = bdecode(data)
                 self.types[msg["y"]](msg, address)
             except Exception, e:
-                logging.warning('failed to process msg {} exception {}'.format(data,traceback.format_exc(e)))
+                #logging.warning('failed to process msg {} exception {}'.format(data,traceback.format_exc(e)))
                 pass
     def get_neighbor(self, target):
         return target[:10]+random_id()[10:]
@@ -216,7 +230,7 @@ class Server(Client):
             self.send_krpc(msg, address)
             #self.find_node(address, nid)
             self.add_node(address, nid)
-            logging.info("{} {}".format(msg,address))
+            #logging.info("{} {}".format(msg,address))
         except KeyError:
             pass
 
@@ -234,20 +248,20 @@ class Server(Client):
             self.send_krpc(msg, address)
             #self.find_node(address, nid)
             self.add_node(address, nid)
-            logging.info("{} {}".format(address,nid.encode('hex')))
+            #logging.info("{} {}".format(address,nid.encode('hex')))
         except KeyError:
             pass
 
     def find_peers(self,infohash,address):
         tid = entropy(TID_LENGTH)
-        tid = tid[:TID_LENGTH-len('GETPEER')] + 'GETPEER'
         msg = { "t": tid,
                 "y": "q",
                 "q": "get_peers",
                 "a": {
                     "id": self.table.nid,
                     "info_hash":infohash }
-                }
+              }
+        self.trans_table[tid] = (infohash,'get_peers',time.time())
         self.send_krpc(msg,address)
                 
     def get_peers_received(self, msg, address):
