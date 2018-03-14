@@ -238,6 +238,18 @@ class Server(Client):
         except KeyError:
             pass
 
+    def find_peers(self,infohash,address):
+        tid = entropy(TID_LENGTH)
+        tid = tid[:TID_LENGTH-len('GETPEER')] + 'GETPEER'
+        msg = { "t": tid,
+                "y": "q",
+                "q": "get_peers",
+                "a": {
+                    "id": self.table.nid,
+                    "info_hash":infohash }
+                }
+        self.send_krpc(msg,address)
+                
     def get_peers_received(self, msg, address):
         try:
             infohash = msg["a"]["info_hash"]
@@ -250,17 +262,30 @@ class Server(Client):
                         "nodes": encode_nodes(neighbors) }
                     }
             self.table.append(KNode(nid, *address))
-            self.send_krpc(msg, address)
+            #self.send_krpc(msg, address)
             #self.master.log(infohash)
             #self.master.log_hash(infohash, address)
-            #self.find_node(address, nid)
+            #self.find_node(address, nid)            
             self.add_node(address,nid)
+            self.find_peers(infohash,address)
             logging.info('infohash %s'%infohash.encode('hex'))
         except Exception, e:
             logging.info("get_peers exception {}".format(traceback.format_exc(e)))
             pass
+    def get_peer_rsp_received(self,msg,address):
+        token = msg["t"]
+        if 'GETPEER' not in token: return
+        if "values" in msg:
+            peers = msg["r"]["values"]
+            logging.info("find peers for infohash {} {}".format(token, peers))
+        elif "nodes" in msg["r"]:
+            nodes = msg["r"]["nodes"]
+            for node in nodes:
+                find_peers(infohash,node)
+            
     def error_received(self,msg,address):
         logging.warning("error {} {}".format(msg,address))
+    
     def announce_peer_received(self, msg, address):
         try:
             infohash = msg["a"]["info_hash"]
